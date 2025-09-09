@@ -11,8 +11,11 @@ on:
         type: string
 
 jobs:
-  set-up:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: ${{ fromJson(inputs.components) }}
     steps:
       - id: set_env
         name: Determine environment
