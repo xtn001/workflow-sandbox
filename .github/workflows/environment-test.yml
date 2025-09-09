@@ -17,25 +17,38 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       env_name: ${{ steps.set_env.outputs.env_name }}
+      env_list: ${{ steps.set_env.outputs.env_list }}
     steps:
       - id: set_env
         name: Determine environment
         run: |
           echo "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
+          ENV_NAME=""
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             INPUT_ENV="${{ github.event.inputs.environment }}"
             if [ -n "${INPUT_ENV}" ]; then
-              echo "env_name=${INPUT_ENV}" >> $GITHUB_OUTPUT
+              ENV_NAME="${INPUT_ENV}"
             else
-              echo "env_name=manual" >> $GITHUB_OUTPUT
+              ENV_NAME="manual"
             fi
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             TAG=${GITHUB_REF#refs/tags/}
-            ENV=${TAG%%@*}
-            echo "env_name=${ENV}" >> $GITHUB_OUTPUT
+            ENV_NAME=${TAG%%@*}
           else
-            echo "env_name=unknown" >> $GITHUB_OUTPUT
+            ENV_NAME="unknown"
           fi
+          echo "Determined env_name=${ENV_NAME}"
+          if [ -z "${ENV_NAME}" ] || [ "${ENV_NAME}" = "unknown" ] || [ "${ENV_NAME}" = "manual" ]; then
+            ENV_LIST='["dev","prod"]'
+          else
+            ENV_LIST='["'"${ENV_NAME}"'" ]'
+            # simpler: ENV_LIST='["'${ENV_NAME}'"]'
+            ENV_LIST='["'"${ENV_NAME}"'" ]'
+          fi
+          # normalize to compact JSON (no spaces)
+          ENV_LIST=$(echo "${ENV_LIST}" | tr -d ' ')
+          echo "env_name=${ENV_NAME}" >> $GITHUB_OUTPUT
+          echo "env_list=${ENV_LIST}" >> $GITHUB_OUTPUT
 
   build:
     name: Build
@@ -55,11 +68,14 @@ jobs:
     name: Delivery
     needs: [prepare, build]
     runs-on: ubuntu-latest
-    environment: ${{ needs.prepare.outputs.env_name }}
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.prepare.outputs.env_list) }}
+    environment: ${{ matrix.environment }}
     steps:
       - name: Output delivery logs
         run: |
-          echo "[delivery] Delivery job started"
+          echo "[delivery] Delivery job started for ${{ matrix.environment }}"
           echo "[delivery] Running delivery steps... (log only)"
           echo "[delivery] vars.testdata=${{ vars.testdata || '' }}"
           echo "[delivery] secrets.testkey=${{ secrets.testkey || '' }}"
