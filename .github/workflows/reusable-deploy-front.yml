@@ -21,6 +21,18 @@ jobs:
         name: Determine environment
         run: |
           echo "set-up step"
+  deliver:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        component: ${{ fromJson(inputs.components) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Output deploy logs
+        run: |
+          echo "component=${{ matrix.component }} to deploy to environment ${{ inputs.environment }}"
   deploy-backend:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
