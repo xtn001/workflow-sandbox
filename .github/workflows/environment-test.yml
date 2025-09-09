@@ -51,9 +51,21 @@ jobs:
           echo "[build] Running build steps... (no-op)"
           echo "[build] Build job finished"
 
+  delivery:
+    name: Delivery
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.env_name }}
+    steps:
+      - name: Output delivery logs
+        run: |
+          echo "[delivery] Delivery job started"
+          echo "[delivery] Running delivery steps... (log only)"
+          echo "[delivery] Delivery job finished"
+
   deploy:
     name: Deploy
-    needs: [build, prepare]
+    needs: [delivery, prepare]
     runs-on: ubuntu-latest
     environment: ${{ needs.prepare.outputs.env_name }}
     steps:
