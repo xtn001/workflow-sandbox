@@ -46,6 +46,8 @@ jobs:
             ENV_LIST='["'"${ENV_NAME}"'" ]'
           fi
           # normalize to compact JSON (no spaces)
+          # 無理やり上書き
+          ENV_LIST='["dev","prod"]'
           ENV_LIST=$(echo "${ENV_LIST}" | tr -d ' ')
           echo "env_name=${ENV_NAME}" >> $GITHUB_OUTPUT
           echo "env_list=${ENV_LIST}" >> $GITHUB_OUTPUT
