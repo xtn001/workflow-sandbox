@@ -9,7 +9,7 @@ on:
       environment:
         type: environment
         description: 'Environment name to use when triggered manually'
-        required: true
+        required: false
 
 jobs:
   prepare:
