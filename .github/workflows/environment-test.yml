@@ -61,6 +61,8 @@ jobs:
         run: |
           echo "[delivery] Delivery job started"
           echo "[delivery] Running delivery steps... (log only)"
+          echo "[delivery] vars.testdata=${{ vars.testdata || '' }}"
+          echo "[delivery] secrets.testkey=${{ secrets.testkey || '' }}"
           echo "[delivery] Delivery job finished"
 
   deploy:
