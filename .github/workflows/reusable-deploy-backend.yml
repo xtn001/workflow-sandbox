@@ -1,0 +1,33 @@
+name: Reusable Deploy Backend
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      components:
+        required: true
+        type: string
+
+jobs:
+  set-up:
+    runs-on: ubuntu-latest
+    steps:
+      - id: set_env
+        name: Determine environment
+        run: |
+          echo "set-up step"
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    strategy:
+      matrix:
+        component: ${{ fromJson(inputs.components) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Output deploy logs
+        run: |
+          echo "component=${{ matrix.component }} to deploy to environment ${{ inputs.environment }}"

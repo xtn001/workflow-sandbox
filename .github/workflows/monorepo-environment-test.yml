@@ -38,46 +38,22 @@ jobs:
           fi
 
   deploy-front:
-    name: deploy-front
+    uses: ./.github/workflows/reusable-deploy-front.yml
     needs: prepare
-    runs-on: ubuntu-latest
-    environment: ${{ needs.prepare.outputs.env_name }}
-    strategy:
-      matrix:
-        component: ['front1']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Output deploy logs
-        run: |
-          echo "component=${{ matrix.component }} to deploy to environment ${{ needs.prepare.outputs.env_name }}"
+    with:
+      environment: ${{ needs.prepare.outputs.env_name }}
+      components: '["front1"]'
 
   deploy-backend:
-    name: deploy-backend
+    uses: ./.github/workflows/reusable-deploy-backend.yml
     needs: prepare
-    runs-on: ubuntu-latest
-    environment: ${{ needs.prepare.outputs.env_name }}
-    strategy:
-      matrix:
-        component: ['backend1', 'backend2', 'backend3']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Output deploy logs
-        run: |
-          echo "component=${{ matrix.component }} to deploy to environment ${{ needs.prepare.outputs.env_name }}"
+    with:
+      environment: ${{ needs.prepare.outputs.env_name }}
+      components: '["backend1","backend2","backend3"]'
 
   deploy-lambda:
-    name: deploy-lambda
+    uses: ./.github/workflows/reusable-deploy-lambda.yml
     needs: prepare
-    runs-on: ubuntu-latest
-    environment: ${{ needs.prepare.outputs.env_name }}
-    strategy:
-      matrix:
-        component: ['lambda1', 'lambda2', 'lambda3', 'lambda4', 'lambda5', 'lambda6', 'lambda7', 'lambda8', 'lambda9', 'lambda10']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Output deploy logs
-        run: |
-          echo "component=${{ matrix.component }} to deploy to environment ${{ needs.prepare.outputs.env_name }}"
+    with:
+      environment: ${{ needs.prepare.outputs.env_name }}
+      components: '["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]'
