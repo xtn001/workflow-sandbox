@@ -1,0 +1,69 @@
+name: environment-test
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Environment name to use when triggered manually'
+        required: true
+
+jobs:
+  prepare:
+    name: Prepare environment
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.set_env.outputs.env_name }}
+    steps:
+      - id: set_env
+        name: Determine environment
+        run: |
+          echo "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            INPUT_ENV="${{ github.event.inputs.environment }}"
+            if [ -n "${INPUT_ENV}" ]; then
+              echo "env_name=${INPUT_ENV}" >> $GITHUB_OUTPUT
+            else
+              echo "env_name=manual" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            ENV=${TAG%%@*}
+            echo "env_name=${ENV}" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=unknown" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    name: Build
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Output build logs
+        run: |
+          echo "[build] Build job started"
+          echo "[build] Running build steps... (no-op)"
+          echo "[build] Build job finished"
+
+  deploy:
+    name: Deploy
+    needs: [build, prepare]
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.env_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Output deploy logs
+        run: |
+          echo "[deploy] Deploy job started"
+          echo "[deploy] Running deploy steps... (no-op)"
+          echo "[deploy] vars.testdata=${{ vars.testdata || '' }}"
+          echo "[deploy] secrets.testkey=${{ secrets.testkey || '' }}"
+          echo "[deploy] Deploy job finished"
