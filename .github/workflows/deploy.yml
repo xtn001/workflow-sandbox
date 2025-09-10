@@ -37,7 +37,7 @@ jobs:
             echo "env_name=unknown" >> $GITHUB_OUTPUT
           fi
 
-  deploy-front:
+  deploy-fronts:
     needs: prepare
     uses: ./.github/workflows/deploy-fronts.yml
     with:
@@ -45,14 +45,14 @@ jobs:
     secrets: inherit
 
 
-  deploy-backend:
+  deploy-backends:
     needs: prepare
     uses: ./.github/workflows/deploy-backends.yml
     with:
       environment: ${{ needs.prepare.outputs.env_name }}
     secrets: inherit
 
-  deploy-lambda:
+  deploy-lambdas:
     needs: prepare
     uses: ./.github/workflows/deploy-lambdas.yml
     with:
