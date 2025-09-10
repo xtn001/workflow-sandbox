@@ -60,9 +60,19 @@ jobs:
       environment: ${{ needs.prepare.outputs.env_name }}
     secrets: inherit
 
+  deploy-lambda-layer:
+    needs: prepare
+    uses: ./.github/workflows/reusable-deploy-lambda.yml
+    strategy:
+      matrix:
+        component: ["lambda-layer1"]
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ needs.prepare.outputs.env_name }}
+    secrets: inherit
 
   deploy-lambda:
-    needs: prepare
+    needs: [prepare, deploy-lambda-layer]
     uses: ./.github/workflows/reusable-deploy-lambda.yml
     strategy:
       matrix:
