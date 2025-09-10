@@ -1,4 +1,4 @@
-name: monorepo-environment-test
+name: backend-deploy
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
+        component: ["backend1","backend2","backend3"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
     needs: [prepare, build]
     strategy:
       matrix:
-        component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
+        component: ["backend1","backend2","backend3"]
     environment: ${{ needs.prepare.outputs.env_name }}
     steps:
       - name: Checkout
