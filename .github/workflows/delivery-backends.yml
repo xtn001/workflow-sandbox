@@ -1,4 +1,4 @@
-name: deploy-backends
+name: delivery-backends
 
 on:
   workflow_call:
@@ -9,8 +9,8 @@ on:
         required: true
 
 jobs:
-  deploy:
-    uses: ./.github/workflows/deploy-backend.yml
+  delivery:
+    uses: ./.github/workflows/delivery-backend.yml
     strategy:
       matrix:
         component: ["backend1","backend2","backend3"]

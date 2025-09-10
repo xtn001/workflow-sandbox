@@ -7,11 +7,9 @@ on:
         type: environment
         description: 'Environment name to use when triggered manually'
         required: true
-  workflow_call:
-    inputs:
-      environment:
+      target:
         type: string
-        description: 'Environment name to use when triggered manually'
+        description: 'Tag to deploy'
         required: true
 
 jobs:
@@ -21,6 +19,7 @@ jobs:
       matrix:
         component: ["backend1","backend2","backend3"]
     with:
-      components: ${{ matrix.component }}
       environment: ${{ inputs.environment }}
+      target: ${{ inputs.target }}
+      components: ${{ matrix.component }}
     secrets: inherit

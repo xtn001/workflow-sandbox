@@ -1,0 +1,25 @@
+name: deploy2
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Environment name to use when triggered manually'
+        required: false
+      target:
+        type: string
+        description: 'Tag to deploy'
+        required: true
+
+env:
+  ENV_DEV_TEST: '["dev","test"]'
+  ENV_LIVE: '["live"]'
+
+jobs:
+  deploy-backends:
+    uses: ./.github/workflows/deploy-backends.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      target: ${{ github.event.inputs.target }}
+    secrets: inherit

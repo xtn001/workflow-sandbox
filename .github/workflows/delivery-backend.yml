@@ -1,4 +1,4 @@
-name: deploy-backend
+name: delivery-backend
 
 on:
   workflow_call:
@@ -21,14 +21,14 @@ jobs:
       - name: Output deploy logs
         run: |
           echo "build ${{ inputs.components }}"
-  deliver:
+  delivery:
     runs-on: ubuntu-latest
     needs: [build]
     environment: ${{ inputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Output deploy logs
+      - name: Output delivery logs
         run: |
-          echo "deliver"
+          echo "delivery"
           echo "component=${{ inputs.components }}, env_variable=${{ vars.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"
