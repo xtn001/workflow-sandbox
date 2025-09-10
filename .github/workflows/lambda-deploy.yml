@@ -1,63 +1,34 @@
 name: lambda-deploy
 
 on:
-  push:
-    tags:
-      - '*'
-  workflow_dispatch:
+  workflow_call:
     inputs:
       environment:
-        type: environment
+        type: string
         description: 'Environment name to use when triggered manually'
-        required: false
+        required: true
+      components:
+        type: string
+        description: 'Components to deploy'
+        required: true
 
 jobs:
-  prepare:
-    name: Prepare environment
-    runs-on: ubuntu-latest
-    outputs:
-      env_name: ${{ steps.set_env.outputs.env_name }}
-    steps:
-      - id: set_env
-        name: Determine environment
-        run: |
-          echo "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            INPUT_ENV="${{ github.event.inputs.environment }}"
-            if [ -n "${INPUT_ENV}" ]; then
-              echo "env_name=${INPUT_ENV}" >> $GITHUB_OUTPUT
-            else
-              echo "env_name=manual" >> $GITHUB_OUTPUT
-            fi
-          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            TAG=${GITHUB_REF#refs/tags/}
-            ENV=${TAG%%@*}
-            echo "env_name=${ENV}" >> $GITHUB_OUTPUT
-          else
-            echo "env_name=unknown" >> $GITHUB_OUTPUT
-          fi
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Output deploy logs
         run: |
-          echo "build ${{ matrix.component }}"
+          echo "build ${{ inputs.components }}"
   deliver-deploy:
     runs-on: ubuntu-latest
-    needs: [prepare, build]
-    strategy:
-      matrix:
-        component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
-    environment: ${{ needs.prepare.outputs.env_name }}
+    needs: [build]
+    environment: ${{ inputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Output deploy logs
         run: |
           echo "deliver"
-          echo "component=${{ matrix.component }}, env_variable=${{ vars.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"
+          echo "component=${{ inputs.components }}, env_variable=${{ vars.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"

@@ -1,0 +1,70 @@
+name: monorepo-environment-test
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Environment name to use when triggered manually'
+        required: false
+
+jobs:
+  prepare:
+    name: Prepare environment
+    runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.determine_env.outputs.env_name }}
+    steps:
+      - id: determine_env
+        name: Determine environment
+        run: |
+          echo "GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            INPUT_ENV="${{ github.event.inputs.environment }}"
+            if [ -n "${INPUT_ENV}" ]; then
+              echo "env_name=${INPUT_ENV}" >> $GITHUB_OUTPUT
+            else
+              echo "env_name=manual" >> $GITHUB_OUTPUT
+            fi
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
+            ENV=${TAG%%@*}
+            echo "env_name=${ENV}" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=unknown" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-front:
+    needs: prepare
+    uses: ./.github/workflows/reusable-deploy-front.yml
+    strategy:
+      matrix:
+        component: ["front1"]
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ needs.prepare.outputs.env_name }}
+
+
+  deploy-backend:
+    needs: prepare
+    uses: ./.github/workflows/reusable-deploy-backend.yml
+    strategy:
+      matrix:
+        component: ["backend1","backend2","backend3"]
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ needs.prepare.outputs.env_name }}
+
+
+  deploy-lambda:
+    needs: prepare
+    uses: ./.github/workflows/reusable-deploy-lambda.yml
+    strategy:
+      matrix:
+        component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ needs.prepare.outputs.env_name }}
