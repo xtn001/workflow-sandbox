@@ -1,4 +1,4 @@
-name: flontend-deploy
+name: deploy-lambda
 
 on:
   workflow_call:

@@ -1,0 +1,26 @@
+name: deploy-fronts
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment name to use when triggered manually'
+        required: true
+        default: 'dev'
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: 'Environment name to use when triggered manually'
+        required: true
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-front.yml
+    strategy:
+      matrix:
+        component: ["frontend1"]
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ inputs.environment }}
+    secrets: inherit

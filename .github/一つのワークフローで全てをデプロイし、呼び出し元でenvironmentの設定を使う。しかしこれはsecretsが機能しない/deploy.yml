@@ -12,7 +12,7 @@ on:
         required: false
 
 jobs:
-  prepare:
+  determine-env:
     name: Prepare environment
     runs-on: ubuntu-latest
     outputs:
@@ -36,48 +36,68 @@ jobs:
           else
             echo "env_name=unknown" >> $GITHUB_OUTPUT
           fi
+  
+  prepare-variables:
+    needs: determine-env
+    name: variable_setup
+    runs-on: ubuntu-latest
+    environment: ${{ needs.determine-env.outputs.env_name }}
+    outputs:
+      env_variable: ${{ steps.set_env.outputs.env_variable }}
+      env_secret: ${{ steps.set_env.outputs.env_secret }}
+    steps:
+      - id: set_env
+        name: Set environment variable
+        run: |
+          echo "Setting environment variable based on environment: ${{ needs.determine-env.outputs.env_name }}"
+          echo "env_variable=${{ vars.TESTDATA }}" >> $GITHUB_OUTPUT
+          echo "env_secret=${{ secrets.TESTKEY }}" >> $GITHUB_OUTPUT
 
   deploy-front:
-    needs: prepare
+    needs: prepare-variables
     uses: ./.github/workflows/reusable-deploy-front.yml
     strategy:
       matrix:
         component: ["front1"]
     with:
       components: ${{ matrix.component }}
-      environment: ${{ needs.prepare.outputs.env_name }}
-    secrets: inherit
+      environment-variable: ${{ needs.prepare-variables.outputs.env_variable }}
+    secrets:
+      environment-secret: ${{ needs.prepare-variables.outputs.env_secret }}
 
 
   deploy-backend:
-    needs: prepare
+    needs: prepare-variables
     uses: ./.github/workflows/reusable-deploy-backend.yml
     strategy:
       matrix:
         component: ["backend1","backend2","backend3"]
     with:
       components: ${{ matrix.component }}
-      environment: ${{ needs.prepare.outputs.env_name }}
-    secrets: inherit
+      environment-variable: ${{ needs.prepare-variables.outputs.env_variable }}
+    secrets:
+      environment-secret: ${{ needs.prepare-variables.outputs.env_secret }}
 
   deploy-lambda-layer:
-    needs: prepare
+    needs: prepare-variables
     uses: ./.github/workflows/reusable-deploy-lambda.yml
     strategy:
       matrix:
         component: ["lambda-layer1"]
     with:
       components: ${{ matrix.component }}
-      environment: ${{ needs.prepare.outputs.env_name }}
-    secrets: inherit
+      environment-variable: ${{ needs.prepare-variables.outputs.env_variable }}
+    secrets:
+      environment-secret: ${{ needs.prepare-variables.outputs.env_secret }}
 
   deploy-lambda:
-    needs: [prepare, deploy-lambda-layer]
+    needs: [prepare-variables, deploy-lambda-layer]
     uses: ./.github/workflows/reusable-deploy-lambda.yml
     strategy:
       matrix:
         component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
     with:
       components: ${{ matrix.component }}
-      environment: ${{ needs.prepare.outputs.env_name }}
-    secrets: inherit
+      environment-variable: ${{ needs.prepare-variables.outputs.env_variable }}
+    secrets:
+      environment-secret: ${{ needs.prepare-variables.outputs.env_secret }}
