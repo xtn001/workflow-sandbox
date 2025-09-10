@@ -1,0 +1,21 @@
+name: deploy-backends
+
+on:
+  workflow_call:
+    inputs:
+      environments:
+        type: string
+        description: 'Comma-separated list of environment names to use when triggered manually'
+        required: true
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-backend.yml
+    strategy:
+      matrix:
+        component: ["backend1","backend2","backend3"]
+        environments: ${{ fromJson(inputs.environments) }}
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ matrix.environments }}
+    secrets: inherit

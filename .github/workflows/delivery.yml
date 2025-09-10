@@ -1,0 +1,123 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: 'Environment name to use when triggered manually'
+        required: false
+
+jobs:
+  prepare:
+    name: Prepare environment
+    runs-on: ubuntu-latest
+    outputs:
+      selected-environments: ${{ steps.choose_env.outputs.selected-environments }}
+    steps:
+      - name: Checkout (full history & tags)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Enumerate tag and candidate branches
+        id: set
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG=""
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "commit-sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+
+          # list remote branches that contain this commit (candidates)
+          BRANCHES=$(git branch -r --contains "${GITHUB_SHA}" 2>/dev/null \
+            | sed 's#origin/##g' \
+            | sed 's#^[[:space:]]*##g' \
+            | tr '\n' ',' \
+            | sed 's/,$//')
+          if [ -z "${BRANCHES}" ]; then
+            BRANCHES="(none)"
+          fi
+          echo "candidate-branches=${BRANCHES}" >> $GITHUB_OUTPUT
+
+      - name: Fetch repository environments
+        id: list_envs
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const res = await github.request('GET /repos/{owner}/{repo}/environments', {
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const names = (res.data.environments || []).map(e => e.name);
+            core.setOutput('env-list', names.join(','));
+
+      - name: Choose selected environments
+        id: choose_env
+        shell: bash
+        env:
+          CANDIDATE_BRANCHES: ${{ steps.set.outputs.candidate-branches }}
+          ENV_LIST: ${{ steps.list_envs.outputs.env-list }}
+        run: |
+          # determine if main is among candidate branches
+          FOUND_MAIN=false
+          IFS=',' read -r -a branches <<< "${CANDIDATE_BRANCHES}"
+          for b in "${branches[@]}"; do
+            if [[ "${b}" == "main" || "${b}" == "origin/main" || "${b}" == "refs/heads/main" ]]; then
+              FOUND_MAIN=true
+              break
+            fi
+          done
+
+          if [ -z "${ENV_LIST}" ]; then
+              # no environments found -> produce empty JSON array
+              JSON_SELECTED='[]'
+          else
+            IFS=',' read -r -a envs <<< "${ENV_LIST}"
+            if [ "${FOUND_MAIN}" = "true" ]; then
+                JSON_SELECTED='["live"]'
+            else
+              OUT=()
+              for e in "${envs[@]}"; do
+                if [ "${e}" != "live" ]; then
+                  OUT+=("${e}")
+                fi
+              done
+                if [ ${#OUT[@]} -eq 0 ]; then
+                  # no non-live envs -> empty JSON array
+                  JSON_SELECTED='[]'
+                else
+                  # build JSON array, escaping quotes/backslashes
+                  JSON_SELECTED='['
+                  first=true
+                  for ev in "${OUT[@]}"; do
+                    esc=$(printf '%s' "${ev}" | sed 's/\\/\\\\/g; s/"/\\\"/g')
+                    if [ "$first" = true ]; then
+                      JSON_SELECTED="${JSON_SELECTED}\"${esc}\""
+                      first=false
+                    else
+                      JSON_SELECTED="${JSON_SELECTED},\"${esc}\""
+                    fi
+                  done
+                  JSON_SELECTED="${JSON_SELECTED}]"
+                fi
+            fi
+          fi
+
+          # print and set the JSON array result
+          echo "${JSON_SELECTED}"
+          echo "selected-environments=${JSON_SELECTED}" >> $GITHUB_OUTPUT
+
+  delivery-backends:
+    needs: prepare
+    uses: ./.github/workflows/delivery-backends.yml
+    with:
+      environments: ${{ needs.prepare.outputs.selected-environments }}
+    secrets: inherit
