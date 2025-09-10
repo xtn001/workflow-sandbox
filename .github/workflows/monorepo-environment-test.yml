@@ -44,7 +44,6 @@ jobs:
         component: ["front1"]
     uses: ./.github/workflows/reusable-deploy-front.yml
     with:
-      environment: ${{ needs.prepare.outputs.env_name }}
       components: ${{ matrix.component }}
     environment: ${{ needs.prepare.outputs.env_name }}
 
@@ -56,7 +55,7 @@ jobs:
         component: ["backend1","backend2","backend3"]
     with:
       environment: ${{ needs.prepare.outputs.env_name }}
-      components: ${{ matrix.component }}
+    environment: ${{ needs.prepare.outputs.env_name }}
 
   deploy-lambda:
     uses: ./.github/workflows/reusable-deploy-lambda.yml
