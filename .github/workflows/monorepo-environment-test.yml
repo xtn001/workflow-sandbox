@@ -38,22 +38,31 @@ jobs:
           fi
 
   deploy-front:
-    uses: ./.github/workflows/reusable-deploy-front.yml
     needs: prepare
+    strategy:
+      matrix:
+        component: ["front1"]
+    uses: ./.github/workflows/reusable-deploy-front.yml
     with:
       environment: ${{ needs.prepare.outputs.env_name }}
-      components: '["front1"]'
+      components: ${{ matrix.component }}
 
   deploy-backend:
     uses: ./.github/workflows/reusable-deploy-backend.yml
     needs: prepare
+    strategy:
+      matrix:
+        component: ["backend1","backend2","backend3"]
     with:
       environment: ${{ needs.prepare.outputs.env_name }}
-      components: '["backend1","backend2","backend3"]'
+      components: ${{ matrix.component }}
 
   deploy-lambda:
     uses: ./.github/workflows/reusable-deploy-lambda.yml
     needs: prepare
+    strategy:
+      matrix:
+        component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
     with:
       environment: ${{ needs.prepare.outputs.env_name }}
-      components: '["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]'
+      components: ${{ matrix.component }}
