@@ -46,6 +46,7 @@ jobs:
     with:
       environment: ${{ needs.prepare.outputs.env_name }}
       components: ${{ matrix.component }}
+    environment: ${{ needs.prepare.outputs.env_name }}
 
   deploy-backend:
     uses: ./.github/workflows/reusable-deploy-backend.yml
