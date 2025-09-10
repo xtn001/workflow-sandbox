@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        type: environment
         description: 'Environment name to use when triggered manually'
         required: true
-        default: 'dev'
   workflow_call:
     inputs:
       environment:
