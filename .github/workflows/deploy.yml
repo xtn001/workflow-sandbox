@@ -1,4 +1,4 @@
-name: monorepo-environment-test
+name: deploy
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
 
   deploy-front:
     needs: prepare
-    uses: ./.github/workflows/reusable-deploy-front.yml
+    uses: ./.github/workflows/deploy-front.yml
     strategy:
       matrix:
         component: ["front1"]
@@ -50,7 +50,7 @@ jobs:
 
   deploy-backend:
     needs: prepare
-    uses: ./.github/workflows/reusable-deploy-backend.yml
+    uses: ./.github/workflows/deploy-backend.yml
     strategy:
       matrix:
         component: ["backend1","backend2","backend3"]
@@ -61,7 +61,7 @@ jobs:
 
   deploy-lambda:
     needs: prepare
-    uses: ./.github/workflows/reusable-deploy-lambda.yml
+    uses: ./.github/workflows/deploy-lambda.yml
     strategy:
       matrix:
         component: ["lambda1","lambda2","lambda3","lambda4","lambda5","lambda6","lambda7","lambda8","lambda9","lambda10"]
