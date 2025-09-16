@@ -11,6 +11,10 @@ on:
         type: string
         description: 'Tag to deploy'
         required: true
+      testdata:
+        type: string
+        description: 'Test variable'
+        required: false
 
 jobs:
   deploy:
@@ -22,4 +26,5 @@ jobs:
       environment: ${{ inputs.environment }}
       target: ${{ inputs.target }}
       components: ${{ matrix.component }}
+      testdata: ${{ inputs.testdata }}
     secrets: inherit

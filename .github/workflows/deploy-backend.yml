@@ -19,7 +19,6 @@ on:
         type: string
         description: 'Test variable'
         required: false
-        default: '${{ vars.TESTDATA }}'
     secrets:
       TESTKEY:
         description: 'Test secret'
@@ -38,11 +37,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     environment: ${{ inputs.environment }}
+    env: 
+      TESTDATA: ${{ inputs.testdata || vars.TESTDATA }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Output deploy logs
         run: |
           echo "deploy"
-          echo "component=${{ inputs.components }}, env_variable=${{ vars.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"
+          echo "component=${{ inputs.components }}, env_variable=${{ env.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"
           echo "inputs data - environment: ${{ inputs.environment }}, target: ${{ inputs.target }}, components: ${{ inputs.components }}, testdata: ${{ inputs.testdata }}"
