@@ -15,6 +15,15 @@ on:
         type: string
         description: 'Components to deploy'
         required: true
+      testdata:
+        type: string
+        description: 'Test variable'
+        required: false
+        default: '${{ vars.TESTDATA }}'
+    secrets:
+      TESTKEY:
+        description: 'Test secret'
+        required: false
 
 jobs:
   build:
@@ -36,3 +45,4 @@ jobs:
         run: |
           echo "deploy"
           echo "component=${{ inputs.components }}, env_variable=${{ vars.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"
+          echo "inputs data - environment: ${{ inputs.environment }}, target: ${{ inputs.target }}, components: ${{ inputs.components }}, testdata: ${{ inputs.testdata }}"
