@@ -47,3 +47,19 @@ jobs:
           echo "deploy"
           echo "component=${{ inputs.components }}, env_variable=${{ env.TESTDATA }}, env_secret=${{ secrets.TESTKEY }}"
           echo "inputs data - environment: ${{ inputs.environment }}, target: ${{ inputs.target }}, components: ${{ inputs.components }}, testdata: ${{ inputs.testdata }}"
+  
+  summary:
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Output summary logs
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## Deployment Summary
+          - **Environment**: ${{ inputs.environment }}
+          - **Target**: ${{ inputs.target }}
+          - **Components**: ${{ inputs.components }}
+          - **Test Data**: ${{ inputs.testdata || 'Not provided' }}
+          EOF
