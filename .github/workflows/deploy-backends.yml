@@ -28,3 +28,13 @@ jobs:
       components: ${{ matrix.component }}
       testdata: ${{ inputs.testdata }}
     secrets: inherit
+
+  deploy-fronts:
+    uses: ./.github/workflows/deploy-front.yml
+    strategy:
+      matrix:
+        component: ["frontend1"]
+    with:
+      components: ${{ matrix.component }}
+      environment: ${{ inputs.environment }}
+    secrets: inherit
